@@ -73,5 +73,24 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Prevenir scroll horizontal em todos os elementos */
+  html,
+  body,
+  #root,
+  main,
+  .overflow-auto {
+    @apply overflow-x-hidden;
+    max-width: 100vw;
+  }
+
+  /* Garantir que todos os conteúdos não causem scroll horizontal */
+  .card,
+  .tabs,
+  table,
+  .grid {
+    @apply max-w-full;
   }
 }

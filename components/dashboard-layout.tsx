@@ -21,7 +21,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   BarChart3,
   BellIcon,
-  Building2,
   CalendarDays,
   CreditCard,
   FileText,
@@ -47,7 +46,6 @@ const navigationItems = [
   { name: "Reservas", href: "/bookings", icon: CalendarDays },
   { name: "Hóspedes", href: "/guests", icon: Users },
   { name: "Pagamentos", href: "/payments", icon: CreditCard },
-  { name: "Funcionários", href: "/staff", icon: Building2 },
   { name: "Relatórios", href: "/reports", icon: FileText },
 ];
 
@@ -61,52 +59,54 @@ export default function DashboardLayout({
 
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="grid min-h-screen grid-cols-[auto_1fr] overflow-hidden bg-muted/20">
+      <div className="flex h-screen w-full flex-col overflow-hidden bg-muted/20 md:flex-row">
         {/* Menu Lateral - Desktop e Tablet */}
-        <Sidebar className="hidden w-64 border-r md:block">
-          <SidebarHeader className="border-b">
-            <div className="flex items-center gap-2 px-4 py-2">
-              <HotelIcon className="h-6 w-6 text-primary" />
-              <span className="text-xl font-bold">HotelPro</span>
-            </div>
-          </SidebarHeader>
-          <SidebarContent>
-            <SidebarMenu>
-              {navigationItems.map((item) => (
-                <SidebarMenuItem key={item.name}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname === item.href}
-                    tooltip={item.name}
-                  >
-                    <a href={item.href}>
-                      <item.icon className="h-5 w-5" />
-                      <span>{item.name}</span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarContent>
-          <SidebarFooter className="border-t p-4">
-            <div className="flex items-center gap-2">
-              <Avatar>
-                <AvatarImage src="/placeholder.svg" alt="User" />
-                <AvatarFallback>JD</AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col">
-                <span className="text-sm font-medium">John Doe</span>
-                <span className="text-xs text-muted-foreground">
-                  Gerente do Hotel
-                </span>
+        <div className="hidden w-64 flex-shrink-0 border-r bg-sidebar md:block">
+          <div className="flex h-full flex-col">
+            <SidebarHeader className="border-b">
+              <div className="flex items-center gap-2 px-4 py-2">
+                <HotelIcon className="h-6 w-6 text-primary" />
+                <span className="text-xl font-bold">HotelPro</span>
               </div>
-            </div>
-          </SidebarFooter>
-        </Sidebar>
+            </SidebarHeader>
+            <SidebarContent>
+              <SidebarMenu>
+                {navigationItems.map((item) => (
+                  <SidebarMenuItem key={item.name}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={pathname === item.href}
+                      tooltip={item.name}
+                    >
+                      <a href={item.href}>
+                        <item.icon className="h-5 w-5" />
+                        <span>{item.name}</span>
+                      </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarContent>
+            <SidebarFooter className="mt-auto border-t p-4">
+              <div className="flex items-center gap-2">
+                <Avatar>
+                  <AvatarImage src="/placeholder.svg" alt="User" />
+                  <AvatarFallback>JD</AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">John Doe</span>
+                  <span className="text-xs text-muted-foreground">
+                    Gerente do Hotel
+                  </span>
+                </div>
+              </div>
+            </SidebarFooter>
+          </div>
+        </div>
 
         {/* Menu Lateral - Mobile */}
         <div className="md:hidden">
-          <Sidebar className="w-full border-r">
+          <Sidebar>
             <SidebarHeader className="border-b">
               <div className="flex items-center justify-between px-4 py-2">
                 <div className="flex items-center gap-2">
@@ -133,7 +133,7 @@ export default function DashboardLayout({
                 ))}
               </SidebarMenu>
             </SidebarContent>
-            <SidebarFooter className="border-t p-4">
+            <SidebarFooter className="mt-auto border-t p-4">
               <div className="flex items-center gap-2">
                 <Avatar>
                   <AvatarImage src="/placeholder.svg" alt="User" />
@@ -151,8 +151,8 @@ export default function DashboardLayout({
         </div>
 
         {/* Conteúdo Principal */}
-        <div className="flex flex-col overflow-hidden">
-          <div className="sticky top-0 z-40 flex h-14 items-center justify-between border-b bg-background px-4 md:px-6">
+        <div className="flex h-full flex-1 flex-col overflow-hidden">
+          <div className="flex h-14 flex-shrink-0 items-center justify-between border-b bg-background px-4 md:px-6">
             <div className="flex items-center gap-2">
               <SidebarTrigger className="md:hidden" />
               <h1 className="text-xl font-bold md:text-2xl">Dashboard</h1>

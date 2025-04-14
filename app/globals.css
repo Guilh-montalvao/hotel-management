@@ -71,26 +71,70 @@
   * {
     @apply border-border;
   }
+
+  html {
+    @apply overflow-hidden;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    @apply overflow-hidden;
   }
 
-  /* Prevenir scroll horizontal em todos os elementos */
+  /* Regras de responsividade e scroll */
+  :root {
+    --bg-sidebar: hsl(var(--sidebar-background));
+  }
+
+  /* Estilos para espaçamento e responsividade */
+  .bg-sidebar {
+    background-color: var(--bg-sidebar);
+  }
+
+  /* Prevenir scroll lateral em todos os elementos */
   html,
   body,
   #root,
-  main,
-  .overflow-auto {
+  div[class*="dashboard-layout"] {
     @apply overflow-x-hidden;
     max-width: 100vw;
+    height: 100%;
   }
 
-  /* Garantir que todos os conteúdos não causem scroll horizontal */
+  /* Container principal ocupa toda altura disponível */
+  main {
+    @apply h-full;
+  }
+
+  /* Garante que todos os containers não excedam o limite da tela */
   .card,
   .tabs,
   table,
   .grid {
     @apply max-w-full;
   }
+
+  /* Ajustes para elementos de tabela */
+  table {
+    @apply w-full table-auto;
+  }
+
+  /* Ajustes para elementos de grid em tamanhos menores */
+  @media (max-width: 768px) {
+    .grid {
+      @apply grid-cols-1 gap-3;
+    }
+
+    .md\:grid-cols-2,
+    .md\:grid-cols-3,
+    .md\:grid-cols-4 {
+      @apply grid-cols-1;
+    }
+  }
+}
+
+/* Corrige o posicionamento de modais e dropdowns */
+[data-radix-popper-content-wrapper] {
+  z-index: 100 !important;
 }

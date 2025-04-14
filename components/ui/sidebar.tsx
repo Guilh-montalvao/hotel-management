@@ -215,37 +215,17 @@ const Sidebar = React.forwardRef<
     return (
       <div
         ref={ref}
-        className="group peer hidden md:block text-sidebar-foreground"
+        className={cn(
+          "peer flex h-full flex-col text-sidebar-foreground",
+          className
+        )}
         data-state={state}
         data-collapsible={state === "collapsed" ? collapsible : ""}
         data-variant={variant}
         data-side={side}
+        {...props}
       >
-        {/* Placeholder for sidebar width (non-visual) */}
-        <div
-          className={cn(
-            "relative h-svh w-[--sidebar-width] bg-transparent",
-            side === "left" ? "float-left" : "float-right"
-          )}
-        />
-        <div
-          className={cn(
-            "fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] overflow-hidden md:flex",
-            side === "left" ? "left-0" : "right-0",
-            variant === "floating" || variant === "inset"
-              ? "p-2"
-              : "group-data-[side=left]:border-r group-data-[side=right]:border-l",
-            className
-          )}
-          {...props}
-        >
-          <div
-            data-sidebar="sidebar"
-            className="flex h-full w-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow"
-          >
-            {children}
-          </div>
-        </div>
+        {children}
       </div>
     );
   }

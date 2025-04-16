@@ -83,17 +83,16 @@ export default function GuestsPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Hóspedes VIP</CardTitle>
-            <Badge
-              variant="outline"
-              className="bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-400 dark:border-amber-800"
-            >
-              VIP
-            </Badge>
+            <CardTitle className="text-sm font-medium">
+              Hóspedes Recentes
+            </CardTitle>
+            <UserIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">24</div>
-            <p className="text-xs text-muted-foreground">Membros premium</p>
+            <p className="text-xs text-muted-foreground">
+              Últimos 30 dias
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -134,9 +133,8 @@ export default function GuestsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os Hóspedes</SelectItem>
-                  <SelectItem value="current">Hóspedes Atuais</SelectItem>
-                  <SelectItem value="vip">Hóspedes VIP</SelectItem>
-                  <SelectItem value="past">Hóspedes Anteriores</SelectItem>
+                  <SelectItem value="atual">Hóspedes Atuais</SelectItem>
+                  <SelectItem value="anterior">Hóspedes Anteriores</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -147,7 +145,6 @@ export default function GuestsPage() {
             <TabsList>
               <TabsTrigger value="all">Todos os Hóspedes</TabsTrigger>
               <TabsTrigger value="current">Atuais</TabsTrigger>
-              <TabsTrigger value="vip">VIP</TabsTrigger>
               <TabsTrigger value="recent">Recentes</TabsTrigger>
             </TabsList>
             <TabsContent value="all" className="space-y-4">
@@ -192,28 +189,7 @@ export default function GuestsPage() {
                 </TableBody>
               </Table>
             </TabsContent>
-            <TabsContent value="vip" className="space-y-4">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Hóspede</TableHead>
-                    <TableHead>Contato</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Última Estadia</TableHead>
-                    <TableHead>Total de Estadias</TableHead>
-                    <TableHead>Preferências</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {guestData
-                    .filter((guest) => guest.vip)
-                    .map((guest) => (
-                      <GuestRow key={guest.id} guest={guest} />
-                    ))}
-                </TableBody>
-              </Table>
-            </TabsContent>
+
             <TabsContent value="recent" className="space-y-4">
               <Table>
                 <TableHeader>
@@ -229,7 +205,7 @@ export default function GuestsPage() {
                 </TableHeader>
                 <TableBody>
                   {guestData
-                    .filter((guest) => guest.status === "Recent")
+                    .filter((guest) => guest.status === "Recente")
                     .map((guest) => (
                       <GuestRow key={guest.id} guest={guest} />
                     ))}
@@ -255,14 +231,6 @@ function GuestRow({ guest }: { guest: Guest }) {
           <div>
             <div className="font-medium flex items-center gap-1">
               {guest.name}
-              {guest.vip && (
-                <Badge
-                  variant="outline"
-                  className="ml-1 bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-400 dark:border-amber-800"
-                >
-                  VIP
-                </Badge>
-              )}
             </div>
             <div className="text-xs text-muted-foreground">
               {guest.nationality}
@@ -278,18 +246,14 @@ function GuestRow({ guest }: { guest: Guest }) {
         <Badge
           variant="outline"
           className={
-            guest.status === "Current"
+            guest.status === "Atual"
               ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-400 dark:border-emerald-800"
-              : guest.status === "Recent"
+              : guest.status === "Recente"
               ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-800"
               : "bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900 dark:text-gray-400 dark:border-gray-800"
           }
         >
-          {guest.status === "Current"
-            ? "Atual"
-            : guest.status === "Recent"
-            ? "Recente"
-            : "Anterior"}
+          {guest.status}
         </Badge>
       </TableCell>
       <TableCell>{guest.lastStay}</TableCell>
@@ -323,10 +287,9 @@ interface Guest {
   email: string;
   phone: string;
   nationality: string;
-  status: "Current" | "Recent" | "Past";
+  status: "Atual" | "Recente" | "Anterior";
   lastStay: string;
   totalStays: number;
-  vip: boolean;
   preferences: string[];
 }
 
@@ -341,7 +304,6 @@ const guestData: Guest[] = [
     status: "Atual",
     lastStay: "12/03/2024",
     totalStays: 5,
-    vip: true,
     preferences: ["Andar Alto", "Não Fumante", "Check-in Antecipado"],
   },
   {
@@ -354,7 +316,6 @@ const guestData: Guest[] = [
     status: "Atual",
     lastStay: "13/03/2024",
     totalStays: 2,
-    vip: false,
     preferences: ["Cama King", "Quarto Silencioso"],
   },
   {
@@ -367,7 +328,6 @@ const guestData: Guest[] = [
     status: "Atual",
     lastStay: "10/03/2024",
     totalStays: 8,
-    vip: true,
     preferences: [
       "Vista para o Mar",
       "Travesseiros Extras",
@@ -384,7 +344,6 @@ const guestData: Guest[] = [
     status: "Recente",
     lastStay: "05/03/2024",
     totalStays: 3,
-    vip: false,
     preferences: ["Vista para a Cidade", "Toalhas Extras"],
   },
   {
@@ -397,7 +356,6 @@ const guestData: Guest[] = [
     status: "Anterior",
     lastStay: "20/02/2024",
     totalStays: 1,
-    vip: false,
     preferences: ["Camas de Solteiro"],
   },
   {
@@ -410,7 +368,6 @@ const guestData: Guest[] = [
     status: "Recente",
     lastStay: "01/03/2024",
     totalStays: 4,
-    vip: true,
     preferences: ["Suíte", "Champanhe de Boas-vindas", "Transfer do Aeroporto"],
   },
 ];

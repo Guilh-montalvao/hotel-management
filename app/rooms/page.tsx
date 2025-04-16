@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,7 +13,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   BedDoubleIcon,
   FilterIcon,
-  PlusIcon,
   RefreshCwIcon,
   SearchIcon,
   WrenchIcon,
@@ -24,8 +25,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useState } from "react";
+import { AddRoomDialog } from "./add-room-dialog";
 
 export default function RoomsPage() {
+  const [rooms, setRooms] = useState<Room[]>(roomData);
+
+  const handleAddRoom = (newRoom: Room) => {
+    setRooms((prevRooms) => [...prevRooms, newRoom]);
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
@@ -39,10 +48,7 @@ export default function RoomsPage() {
             <RefreshCwIcon className="mr-2 h-4 w-4" />
             Atualizar
           </Button>
-          <Button size="sm">
-            <PlusIcon className="mr-2 h-4 w-4" />
-            Adicionar Quarto
-          </Button>
+          <AddRoomDialog onAddRoom={handleAddRoom} />
         </div>
       </div>
 
@@ -154,14 +160,14 @@ export default function RoomsPage() {
               </TabsList>
               <TabsContent value="all" className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {roomData.map((room) => (
+                  {rooms.map((room) => (
                     <RoomCard key={room.number} room={room} />
                   ))}
                 </div>
               </TabsContent>
               <TabsContent value="standard" className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {roomData
+                  {rooms
                     .filter((room) => room.type === "Standard")
                     .map((room) => (
                       <RoomCard key={room.number} room={room} />
@@ -170,7 +176,7 @@ export default function RoomsPage() {
               </TabsContent>
               <TabsContent value="deluxe" className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {roomData
+                  {rooms
                     .filter((room) => room.type === "Deluxe")
                     .map((room) => (
                       <RoomCard key={room.number} room={room} />
@@ -179,7 +185,7 @@ export default function RoomsPage() {
               </TabsContent>
               <TabsContent value="suite" className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {roomData
+                  {rooms
                     .filter((room) => room.type === "Suite")
                     .map((room) => (
                       <RoomCard key={room.number} room={room} />
@@ -259,42 +265,42 @@ const roomData: Room[] = [
   {
     number: "101",
     type: "Standard",
-    status: "Disponível",
+    status: "Available",
     rate: 99,
     description: "Cama queen, vista para a cidade, 25m²",
   },
   {
     number: "102",
     type: "Standard",
-    status: "Ocupado",
+    status: "Occupied",
     rate: 99,
     description: "Cama queen, vista para o jardim, 25m²",
   },
   {
     number: "201",
     type: "Deluxe",
-    status: "Ocupado",
+    status: "Occupied",
     rate: 149,
     description: "Cama king, vista para a cidade, 35m²",
   },
   {
     number: "202",
     type: "Deluxe",
-    status: "Manutenção",
+    status: "Maintenance",
     rate: 149,
     description: "Cama king, vista para o oceano, 35m²",
   },
   {
     number: "301",
     type: "Suíte",
-    status: "Disponível",
+    status: "Available",
     rate: 249,
     description: "Cama king, sala de estar, 50m²",
   },
   {
     number: "302",
     type: "Suíte",
-    status: "Ocupado",
+    status: "Occupied",
     rate: 249,
     description: "Cama king, varanda, 50m²",
   },

@@ -40,6 +40,9 @@ export default function RoomsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [filteredRooms, setFilteredRooms] = useState<Room[]>(roomData);
+  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const router = useRouter();
 
   const handleAddRoom = (newRoom: Room) => {
     setRooms((prevRooms) => [...prevRooms, newRoom]);
@@ -106,19 +109,29 @@ export default function RoomsPage() {
     });
   };
 
+  // Função para abrir o diálogo de detalhes do quarto
+  const handleViewDetails = (room: Room) => {
+    setSelectedRoom(room);
+    setDetailsOpen(true);
+  };
+
+  // Função para lidar com o botão "Reservar"
+  const handleBookRoom = (room: Room) => {
+    // Redireciona para a página de reservas com os parâmetros do quarto
+    router.push(`/bookings?room=${room.number}&type=${room.type}&action=new`);
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Gestão de Quartos</h1>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            <FilterIcon className="mr-2 h-4 w-4" />
-            Filtrar
-          </Button>
-          <Button variant="outline" size="sm">
-            <RefreshCwIcon className="mr-2 h-4 w-4" />
-            Atualizar
-          </Button>
+          {(searchTerm || statusFilter !== "all") && (
+            <Button variant="outline" size="sm" onClick={handleClearFilters}>
+              <XCircleIcon className="mr-2 h-4 w-4" />
+              Limpar Filtros
+            </Button>
+          )}
           <AddRoomDialog onAddRoom={handleAddRoom} />
         </div>
       </div>
@@ -237,241 +250,192 @@ export default function RoomsPage() {
                 <TabsTrigger value="deluxe">Deluxe</TabsTrigger>
                 <TabsTrigger value="suite">Suíte</TabsTrigger>
               </TabsList>
-              <TabsContent value="all" className="space-y-4">
-                {filteredRooms.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredRooms.length === 0 ? (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Nenhum quarto encontrado</AlertTitle>
+                  <AlertDescription>
+                    Não há quartos que correspondem aos critérios de filtro
+                    aplicados.
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <TabsContent value="all" className="space-y-4">
+                  <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                     {filteredRooms.map((room) => (
                       <RoomCard
                         key={room.number}
                         room={room}
-                        onDelete={handleDeleteRoom}
+                        onDelete={() => handleDeleteRoom(room.number)}
+                        onViewDetails={() => handleViewDetails(room)}
+                        onBookRoom={() => handleBookRoom(room)}
                       />
                     ))}
                   </div>
-                ) : (
-                  <div className="p-4 flex flex-col items-center justify-center gap-2">
-                    <Alert variant="destructive" className="max-w-md">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertTitle>Nenhum quarto encontrado</AlertTitle>
-                      <AlertDescription>
-                        Nenhum quarto corresponde aos filtros aplicados.
-                      </AlertDescription>
-                    </Alert>
-                    <Button
-                      variant="outline"
-                      onClick={handleClearFilters}
-                      className="mt-2"
-                    >
-                      <XCircleIcon className="mr-2 h-4 w-4" />
-                      Limpar Filtros
-                    </Button>
-                  </div>
-                )}
-              </TabsContent>
+                </TabsContent>
+              )}
               <TabsContent value="standard" className="space-y-4">
-                {filteredRooms.filter((room) => room.type === "Standard")
-                  .length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {filteredRooms
-                      .filter((room) => room.type === "Standard")
-                      .map((room) => (
-                        <RoomCard
-                          key={room.number}
-                          room={room}
-                          onDelete={handleDeleteRoom}
-                        />
-                      ))}
-                  </div>
-                ) : (
-                  <div className="p-4 flex flex-col items-center justify-center gap-2">
-                    <Alert variant="destructive" className="max-w-md">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertTitle>Nenhum quarto encontrado</AlertTitle>
-                      <AlertDescription>
-                        Nenhum quarto padrão corresponde aos filtros aplicados.
-                      </AlertDescription>
-                    </Alert>
-                    <Button
-                      variant="outline"
-                      onClick={handleClearFilters}
-                      className="mt-2"
-                    >
-                      <XCircleIcon className="mr-2 h-4 w-4" />
-                      Limpar Filtros
-                    </Button>
-                  </div>
-                )}
+                <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                  {filteredRooms
+                    .filter((room) => room.type === "Standard")
+                    .map((room) => (
+                      <RoomCard
+                        key={room.number}
+                        room={room}
+                        onDelete={() => handleDeleteRoom(room.number)}
+                        onViewDetails={() => handleViewDetails(room)}
+                        onBookRoom={() => handleBookRoom(room)}
+                      />
+                    ))}
+                </div>
               </TabsContent>
               <TabsContent value="deluxe" className="space-y-4">
-                {filteredRooms.filter((room) => room.type === "Deluxe").length >
-                0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {filteredRooms
-                      .filter((room) => room.type === "Deluxe")
-                      .map((room) => (
-                        <RoomCard
-                          key={room.number}
-                          room={room}
-                          onDelete={handleDeleteRoom}
-                        />
-                      ))}
-                  </div>
-                ) : (
-                  <div className="p-4 flex flex-col items-center justify-center gap-2">
-                    <Alert variant="destructive" className="max-w-md">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertTitle>Nenhum quarto encontrado</AlertTitle>
-                      <AlertDescription>
-                        Nenhum quarto luxo corresponde aos filtros aplicados.
-                      </AlertDescription>
-                    </Alert>
-                    <Button
-                      variant="outline"
-                      onClick={handleClearFilters}
-                      className="mt-2"
-                    >
-                      <XCircleIcon className="mr-2 h-4 w-4" />
-                      Limpar Filtros
-                    </Button>
-                  </div>
-                )}
+                <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                  {filteredRooms
+                    .filter((room) => room.type === "Deluxe")
+                    .map((room) => (
+                      <RoomCard
+                        key={room.number}
+                        room={room}
+                        onDelete={() => handleDeleteRoom(room.number)}
+                        onViewDetails={() => handleViewDetails(room)}
+                        onBookRoom={() => handleBookRoom(room)}
+                      />
+                    ))}
+                </div>
               </TabsContent>
               <TabsContent value="suite" className="space-y-4">
-                {filteredRooms.filter((room) => room.type === "Suite").length >
-                0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {filteredRooms
-                      .filter((room) => room.type === "Suite")
-                      .map((room) => (
-                        <RoomCard
-                          key={room.number}
-                          room={room}
-                          onDelete={handleDeleteRoom}
-                        />
-                      ))}
-                  </div>
-                ) : (
-                  <div className="p-4 flex flex-col items-center justify-center gap-2">
-                    <Alert variant="destructive" className="max-w-md">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertTitle>Nenhum quarto encontrado</AlertTitle>
-                      <AlertDescription>
-                        Nenhuma suíte corresponde aos filtros aplicados.
-                      </AlertDescription>
-                    </Alert>
-                    <Button
-                      variant="outline"
-                      onClick={handleClearFilters}
-                      className="mt-2"
-                    >
-                      <XCircleIcon className="mr-2 h-4 w-4" />
-                      Limpar Filtros
-                    </Button>
-                  </div>
-                )}
+                <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                  {filteredRooms
+                    .filter((room) => room.type === "Suite")
+                    .map((room) => (
+                      <RoomCard
+                        key={room.number}
+                        room={room}
+                        onDelete={() => handleDeleteRoom(room.number)}
+                        onViewDetails={() => handleViewDetails(room)}
+                        onBookRoom={() => handleBookRoom(room)}
+                      />
+                    ))}
+                </div>
               </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
       </div>
+
+      {selectedRoom && (
+        <RoomDetailsDialog
+          room={selectedRoom}
+          open={detailsOpen}
+          onOpenChange={setDetailsOpen}
+          onBookRoom={() => {
+            setDetailsOpen(false);
+            handleBookRoom(selectedRoom);
+          }}
+        />
+      )}
     </div>
   );
+}
+
+interface RoomCardProps {
+  room: Room;
+  onDelete: () => void;
+  onViewDetails: () => void;
+  onBookRoom: () => void;
 }
 
 function RoomCard({
   room,
   onDelete,
-}: {
-  room: Room;
-  onDelete?: (roomNumber: string) => void;
-}) {
-  const [showDetails, setShowDetails] = useState(false);
-  const router = useRouter();
-
-  const handleDelete = () => {
-    if (onDelete) {
-      onDelete(room.number);
-    }
-  };
-
-  const handleBookRoom = () => {
-    // Navegar para a página de reservas com os parâmetros para abrir o diálogo e pré-selecionar o quarto
-    router.push(`/bookings?action=new&room=${room.number}&type=${room.type}`);
-  };
-
+  onViewDetails,
+  onBookRoom,
+}: RoomCardProps) {
   return (
     <Card className="overflow-hidden">
       <div className="aspect-video relative bg-muted">
         <img
-          src={room.image || "/placeholder.svg?height=200&width=300"}
+          src={room.image || "/placeholder.svg?height=200&width=400"}
           alt={`Room ${room.number}`}
           className="object-cover w-full h-full"
         />
-        <Badge
-          className={`absolute top-2 right-2 ${
-            room.status === "Available"
-              ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-900 dark:text-emerald-300"
+        <div className="absolute top-2 right-2">
+          <Badge
+            variant="outline"
+            className={
+              room.status === "Available"
+                ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-400 dark:border-emerald-800"
+                : room.status === "Occupied"
+                ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-800"
+                : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-400 dark:border-amber-800"
+            }
+          >
+            {room.status === "Available"
+              ? "Disponível"
               : room.status === "Occupied"
-              ? "bg-blue-100 text-blue-800 hover:bg-blue-100 dark:bg-blue-900 dark:text-blue-300"
-              : "bg-amber-100 text-amber-800 hover:bg-amber-100 dark:bg-amber-900 dark:text-amber-300"
-          }`}
-        >
-          {room.status === "Available"
-            ? "Disponível"
-            : room.status === "Occupied"
-            ? "Ocupado"
-            : "Manutenção"}
-        </Badge>
-      </div>
-      <CardHeader className="p-4">
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-lg">Quarto {room.number}</CardTitle>
-          <Badge variant="outline">
-            {room.type === "Standard"
-              ? "Padrão"
-              : room.type === "Deluxe"
-              ? "Luxo"
-              : "Suíte"}
+              ? "Ocupado"
+              : "Manutenção"}
           </Badge>
         </div>
-        <CardDescription>{room.description}</CardDescription>
-      </CardHeader>
-      <CardContent className="p-4 pt-0">
+      </div>
+      <CardHeader className="py-2">
         <div className="flex justify-between items-center">
-          <div className="text-sm">
-            <span className="font-medium">R$ {room.rate}</span> / noite
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleBookRoom}
-              disabled={room.status !== "Available"}
-              title={
-                room.status !== "Available"
-                  ? "Somente quartos disponíveis podem ser reservados"
-                  : "Reservar este quarto"
-              }
-            >
-              <CalendarPlusIcon className="h-4 w-4 mr-1" />
-              Reservar
-            </Button>
-            <Button size="sm" onClick={() => setShowDetails(true)}>
-              Ver Detalhes
-            </Button>
+          <CardTitle className="font-medium">Quarto {room.number}</CardTitle>
+          <Badge variant="secondary">{room.type}</Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="py-2">
+        <div className="flex justify-between items-center mb-2">
+          <div className="font-medium">R$ {room.rate}</div>
+          <div className="text-sm text-muted-foreground">
+            {room.type === "Standard"
+              ? "Quarto padrão"
+              : room.type === "Deluxe"
+              ? "Quarto luxo"
+              : "Suíte executiva"}
           </div>
         </div>
+        <p className="text-sm text-muted-foreground line-clamp-2 h-9">
+          {room.description || "Sem descrição disponível"}
+        </p>
+        <div className="flex flex-col sm:flex-row gap-2 mt-4">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1"
+            onClick={onViewDetails}
+          >
+            Ver Detalhes
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            className="flex-1"
+            onClick={onBookRoom}
+            disabled={room.status !== "Available"}
+          >
+            <CalendarPlusIcon className="mr-2 h-4 w-4" />
+            Reservar
+          </Button>
+        </div>
+        <div className="mt-2">
+          <Button
+            variant="destructive"
+            size="sm"
+            className="w-full"
+            onClick={onDelete}
+            disabled={room.status === "Occupied"}
+          >
+            Excluir
+          </Button>
+        </div>
       </CardContent>
-      <RoomDetailsDialog
-        room={room}
-        open={showDetails}
-        onOpenChange={setShowDetails}
-        onBookRoom={handleBookRoom}
-      />
     </Card>
   );
 }
 
+// Dados de exemplo
 interface Room {
   number: string;
   type: "Standard" | "Deluxe" | "Suite";
@@ -486,42 +450,64 @@ const roomData: Room[] = [
     number: "101",
     type: "Standard",
     status: "Available",
-    rate: 99,
-    description: "Cama queen, vista para a cidade, 25m²",
+    rate: 100,
+    description: "Quarto standard com cama de casal, ar-condicionado e TV.",
+    image:
+      "https://images.unsplash.com/photo-1611892440504-42a792e24d32?q=80&w=1000&auto=format&fit=crop",
   },
   {
     number: "102",
     type: "Standard",
     status: "Occupied",
-    rate: 99,
-    description: "Cama queen, vista para o jardim, 25m²",
+    rate: 100,
+    description:
+      "Quarto standard com duas camas de solteiro, vista para a cidade.",
+    image:
+      "https://images.unsplash.com/photo-1591088398332-8a7791972843?q=80&w=1000&auto=format&fit=crop",
   },
   {
     number: "201",
     type: "Deluxe",
-    status: "Occupied",
-    rate: 149,
-    description: "Cama king, vista para a cidade, 35m²",
+    status: "Available",
+    rate: 150,
+    description:
+      "Quarto deluxe com cama king size, varanda e vista para o mar.",
+    image:
+      "https://images.unsplash.com/photo-1590490360182-c33d57733427?q=80&w=1000&auto=format&fit=crop",
   },
   {
     number: "202",
     type: "Deluxe",
     status: "Maintenance",
-    rate: 149,
-    description: "Cama king, vista para o oceano, 35m²",
+    rate: 150,
+    description: "Quarto deluxe com cama queen, área de trabalho e frigobar.",
+    image:
+      "https://images.unsplash.com/photo-1566665797739-1674de7a421a?q=80&w=1000&auto=format&fit=crop",
   },
   {
     number: "301",
     type: "Suite",
     status: "Available",
-    rate: 249,
-    description: "Cama king, sala de estar, 50m²",
+    rate: 200,
+    description: "Suíte com sala de estar, jacuzzi e vista panorâmica.",
+    image:
+      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=1000&auto=format&fit=crop",
   },
   {
     number: "302",
     type: "Suite",
     status: "Occupied",
-    rate: 249,
-    description: "Cama king, varanda, 50m²",
+    rate: 200,
+    description:
+      "Suíte presidencial com sala de jantar, bar e terraço privativo.",
+    image:
+      "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?q=80&w=1000&auto=format&fit=crop",
   },
 ];
+
+// Tamanhos dos quartos (para exibição no RoomDetailsDialog)
+export const roomSizes = {
+  Standard: "20m²",
+  Deluxe: "30m²",
+  Suite: "45m²",
+};

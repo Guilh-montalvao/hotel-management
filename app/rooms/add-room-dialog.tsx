@@ -224,33 +224,44 @@ export function AddRoomDialog({ onAddRoom }: AddRoomDialogProps) {
                   onClick={handleImageClick}
                 >
                   <CardContent className="p-0">
-                    <div className="relative aspect-video">
+                    <div className="aspect-video relative overflow-hidden rounded-md border">
                       <img
                         src={previewImage}
-                        alt="Preview"
+                        alt="Room preview"
                         className="h-full w-full object-cover"
                       />
+                      <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 p-1">
+                        <p className="text-center text-xs text-white">
+                          Clique para alterar
+                        </p>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
               ) : (
                 <Button
+                  type="button"
                   variant="outline"
-                  className="w-full h-32 flex flex-col gap-2 justify-center items-center"
+                  className="w-full"
                   onClick={handleImageClick}
                 >
-                  <ImageIcon className="h-8 w-8 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">
-                    Clique para adicionar imagem
-                  </span>
+                  <UploadIcon className="mr-2 h-4 w-4" />
+                  Carregar Imagem
                 </Button>
               )}
             </div>
           </div>
         </div>
         <DialogFooter>
-          <Button type="submit" onClick={handleSubmit}>
-            Adicionar
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setOpen(false)}
+          >
+            Cancelar
+          </Button>
+          <Button type="button" onClick={handleSubmit}>
+            Adicionar Quarto
           </Button>
         </DialogFooter>
       </DialogContent>

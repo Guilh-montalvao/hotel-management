@@ -18,7 +18,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PlusIcon, ImageIcon, XCircleIcon } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { PlusIcon, ImageIcon, UploadIcon, XCircleIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface AddGuestDialogProps {
@@ -52,7 +53,7 @@ export function AddGuestDialog({ onAddGuest }: AddGuestDialogProps) {
     preferences: [] as string[],
     avatar: "",
   });
-  
+
   const [previewImage, setPreviewImage] = useState<string>("");
   const [preference, setPreference] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -66,26 +67,34 @@ export function AddGuestDialog({ onAddGuest }: AddGuestDialogProps) {
           return {
             ...prev,
             [field]: value,
-            initials: ""
+            initials: "",
           };
         }
-        
-        const nameParts = nameStr.split(" ").filter(part => part.length > 0);
+
+        const nameParts = nameStr.split(" ").filter((part) => part.length > 0);
         let initials = "";
-        
-        if (nameParts.length > 1 && nameParts[0][0] && nameParts[nameParts.length - 1][0]) {
-          initials = `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`.toUpperCase();
+
+        if (
+          nameParts.length > 1 &&
+          nameParts[0][0] &&
+          nameParts[nameParts.length - 1][0]
+        ) {
+          initials = `${nameParts[0][0]}${
+            nameParts[nameParts.length - 1][0]
+          }`.toUpperCase();
         } else if (nameParts.length === 1 && nameParts[0][0]) {
-          initials = nameStr.substring(0, Math.min(2, nameStr.length)).toUpperCase();
+          initials = nameStr
+            .substring(0, Math.min(2, nameStr.length))
+            .toUpperCase();
         }
-        
+
         return {
           ...prev,
           [field]: value,
-          initials
+          initials,
         };
       }
-      
+
       return {
         ...prev,
         [field]: value,
@@ -247,10 +256,11 @@ export function AddGuestDialog({ onAddGuest }: AddGuestDialogProps) {
               type="number"
               value={guestData.totalStays}
               onChange={(e) =>
-                handleChange("totalStays", parseInt(e.target.value) || 0)
+                handleChange("totalStays", Number(e.target.value))
               }
               className="col-span-3"
               placeholder="Ex: 1"
+              min="1"
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
@@ -258,36 +268,38 @@ export function AddGuestDialog({ onAddGuest }: AddGuestDialogProps) {
               Foto
             </Label>
             <div className="col-span-3">
-              <Card
-                className="cursor-pointer overflow-hidden"
-                onClick={handleImageClick}
-              >
-                <CardContent className="p-0">
-                  <div className="relative aspect-square w-full max-w-[150px] overflow-hidden rounded-md border">
-                    {previewImage ? (
-                      <img
-                        src={previewImage}
-                        alt="Avatar preview"
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-muted">
-                        <ImageIcon className="h-10 w-10 text-muted-foreground" />
-                      </div>
-                    )}
-                    <div className="absolute bottom-0 left-0 right-0 bg-black/50 p-1 text-center text-xs text-white">
-                      <span className="inline-block">Carregar foto</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
               <input
-                ref={fileInputRef}
                 type="file"
+                id="avatar"
+                ref={fileInputRef}
                 accept="image/*"
                 onChange={handleImageChange}
                 className="hidden"
               />
+              <Card
+                className="cursor-pointer border-dashed"
+                onClick={handleImageClick}
+              >
+                <CardContent className="flex flex-col items-center justify-center py-6">
+                  {previewImage ? (
+                    <div className="relative w-full h-32">
+                      <img
+                        src={previewImage}
+                        alt="Preview"
+                        className="w-full h-full object-cover rounded-md"
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      <ImageIcon className="h-10 w-10 text-muted-foreground mb-2" />
+                      <div className="text-sm text-muted-foreground text-center">
+                        <p>Clique para fazer upload</p>
+                        <p className="text-xs">JPG, PNG ou GIF até 2MB</p>
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           </div>
           <div className="grid grid-cols-4 items-start gap-4">
@@ -329,7 +341,14 @@ export function AddGuestDialog({ onAddGuest }: AddGuestDialogProps) {
           </div>
         </div>
         <DialogFooter>
-          <Button type="submit" onClick={handleSubmit}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setOpen(false)}
+          >
+            Cancelar
+          </Button>
+          <Button type="button" onClick={handleSubmit}>
             Adicionar Hóspede
           </Button>
         </DialogFooter>

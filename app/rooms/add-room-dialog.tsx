@@ -39,19 +39,37 @@ export function AddRoomDialog({ onAddRoom }: AddRoomDialogProps) {
     number: "",
     type: "Standard" as "Standard" | "Deluxe" | "Suite",
     status: "Available" as "Available" | "Occupied" | "Maintenance",
-    rate: 0,
+    rate: 100, // Preço padrão inicial
     description: "",
     image: "",
   });
-  
+
   const [previewImage, setPreviewImage] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Preços padrão baseados no tipo de quarto
+  const defaultRates = {
+    Standard: 100,
+    Deluxe: 150,
+    Suite: 200,
+  };
+
   const handleChange = (field: string, value: string | number) => {
-    setRoomData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setRoomData((prev) => {
+      // Se o campo for tipo, atualizar a diária com o valor padrão
+      if (field === "type" && typeof value === "string") {
+        return {
+          ...prev,
+          [field]: value,
+          rate: defaultRates[value as keyof typeof defaultRates],
+        };
+      }
+
+      return {
+        ...prev,
+        [field]: value,
+      };
+    });
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,7 +101,7 @@ export function AddRoomDialog({ onAddRoom }: AddRoomDialogProps) {
       number: "",
       type: "Standard",
       status: "Available",
-      rate: 0,
+      rate: defaultRates.Standard,
       description: "",
       image: "",
     });
@@ -133,9 +151,9 @@ export function AddRoomDialog({ onAddRoom }: AddRoomDialogProps) {
                 <SelectValue placeholder="Selecione o tipo" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Standard">Padrão</SelectItem>
-                <SelectItem value="Deluxe">Luxo</SelectItem>
-                <SelectItem value="Suite">Suíte</SelectItem>
+                <SelectItem value="Standard">Padrão (R$100)</SelectItem>
+                <SelectItem value="Deluxe">Luxo (R$150)</SelectItem>
+                <SelectItem value="Suite">Suíte (R$200)</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -201,7 +219,10 @@ export function AddRoomDialog({ onAddRoom }: AddRoomDialogProps) {
                 className="hidden"
               />
               {previewImage ? (
-                <Card className="cursor-pointer overflow-hidden" onClick={handleImageClick}>
+                <Card
+                  className="cursor-pointer overflow-hidden"
+                  onClick={handleImageClick}
+                >
                   <CardContent className="p-0">
                     <div className="relative aspect-video">
                       <img
@@ -219,7 +240,9 @@ export function AddRoomDialog({ onAddRoom }: AddRoomDialogProps) {
                   onClick={handleImageClick}
                 >
                   <ImageIcon className="h-8 w-8 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">Clique para adicionar imagem</span>
+                  <span className="text-sm text-muted-foreground">
+                    Clique para adicionar imagem
+                  </span>
                 </Button>
               )}
             </div>

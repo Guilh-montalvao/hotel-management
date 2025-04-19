@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,7 +15,9 @@ import {
   SearchIcon,
   UserIcon,
   UsersIcon,
+  XCircleIcon,
 } from "lucide-react";
+import { GuestDetailsDialog } from "./guest-details-dialog";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -32,8 +37,83 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "@/components/ui/use-toast";
+import { AddGuestDialog } from "./add-guest-dialog";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function GuestsPage() {
+  const [guests, setGuests] = useState<Guest[]>(guestData);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [filteredGuests, setFilteredGuests] = useState<Guest[]>(guestData);
+
+  const handleAddGuest = (newGuest: Guest) => {
+    setGuests((prevGuests) => [...prevGuests, newGuest]);
+    toast({
+      title: "Hóspede adicionado",
+      description: `${newGuest.name} foi adicionado com sucesso.`,
+    });
+  };
+
+  const handleDeleteGuest = (guestId: string) => {
+    // Verificar se o hóspede está com hospedagem ativa ou tem reservas
+    const guest = guests.find((g) => g.id === guestId);
+
+    if (guest?.status === "Atual") {
+      toast({
+        title: "Não foi possível excluir",
+        description:
+          "Não é possível excluir um hóspede com hospedagem ativa ou reservas pendentes.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Se passou na verificação, excluir o hóspede
+    setGuests((prevGuests) =>
+      prevGuests.filter((guest) => guest.id !== guestId)
+    );
+    toast({
+      title: "Hóspede excluído",
+      description: `O hóspede foi excluído com sucesso.`,
+    });
+  };
+
+  // Função para limpar os filtros
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("all");
+  };
+
+  // Filtrar os hóspedes de acordo com os critérios
+  useEffect(() => {
+    let result = [...guests];
+
+    // Aplicar filtro de pesquisa
+    if (searchTerm) {
+      result = result.filter(
+        (guest) =>
+          guest.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          guest.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          guest.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          guest.nationality.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Aplicar filtro de status
+    if (statusFilter !== "all") {
+      result = result.filter((guest) => {
+        if (statusFilter === "atual") return guest.status === "Atual";
+        if (statusFilter === "recente") return guest.status === "Recente";
+        if (statusFilter === "anterior") return guest.status === "Anterior";
+        return true;
+      });
+    }
+
+    setFilteredGuests(result);
+  }, [guests, searchTerm, statusFilter]);
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
@@ -45,10 +125,7 @@ export default function GuestsPage() {
             <FilterIcon className="mr-2 h-4 w-4" />
             Filtrar
           </Button>
-          <Button size="sm">
-            <PlusIcon className="mr-2 h-4 w-4" />
-            Adicionar Hóspede
-          </Button>
+          <AddGuestDialog onAddGuest={handleAddGuest} />
         </div>
       </div>
 
@@ -61,7 +138,7 @@ export default function GuestsPage() {
             <UsersIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1.248</div>
+            <div className="text-2xl font-bold">{guests.length}</div>
             <p className="text-xs text-muted-foreground">
               Todos os hóspedes registrados
             </p>
@@ -72,26 +149,38 @@ export default function GuestsPage() {
             <CardTitle className="text-sm font-medium">
               Hóspedes Atuais
             </CardTitle>
-            <UserIcon className="h-4 w-4 text-muted-foreground" />
+            <Badge
+              variant="outline"
+              className="bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-400 dark:border-emerald-800"
+            >
+              Atual
+            </Badge>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">86</div>
-            <p className="text-xs text-muted-foreground">
-              Hospedados no momento
-            </p>
+            <div className="text-2xl font-bold">
+              {guests.filter((g) => g.status === "Atual").length}
+            </div>
+            <p className="text-xs text-muted-foreground">Hospedados</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Hóspedes Recentes
+              Visitas Recentes
             </CardTitle>
-            <UserIcon className="h-4 w-4 text-muted-foreground" />
+            <Badge
+              variant="outline"
+              className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-800"
+            >
+              Recente
+            </Badge>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">24</div>
+            <div className="text-2xl font-bold">
+              {guests.filter((g) => g.status === "Recente").length}
+            </div>
             <p className="text-xs text-muted-foreground">
-              Últimos 30 dias
+              Visitas nos últimos 30 dias
             </p>
           </CardContent>
         </Card>
@@ -125,29 +214,33 @@ export default function GuestsPage() {
                   type="search"
                   placeholder="Pesquisar hóspedes..."
                   className="pl-8"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <Select defaultValue="all">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filtrar por status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os Hóspedes</SelectItem>
                   <SelectItem value="atual">Hóspedes Atuais</SelectItem>
+                  <SelectItem value="recente">Hóspedes Recentes</SelectItem>
                   <SelectItem value="anterior">Hóspedes Anteriores</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="all" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="all">Todos os Hóspedes</TabsTrigger>
-              <TabsTrigger value="current">Atuais</TabsTrigger>
-              <TabsTrigger value="recent">Recentes</TabsTrigger>
-            </TabsList>
-            <TabsContent value="all" className="space-y-4">
+
+        <Tabs defaultValue="all" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="all">Todos os Hóspedes</TabsTrigger>
+            <TabsTrigger value="current">Atuais</TabsTrigger>
+            <TabsTrigger value="recent">Recentes</TabsTrigger>
+          </TabsList>
+          <TabsContent value="all" className="space-y-4">
+            {filteredGuests.length > 0 ? (
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -161,13 +254,38 @@ export default function GuestsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {guestData.map((guest) => (
-                    <GuestRow key={guest.id} guest={guest} />
+                  {filteredGuests.map((guest) => (
+                    <GuestRow
+                      key={guest.id}
+                      guest={guest}
+                      onDeleteGuest={handleDeleteGuest}
+                    />
                   ))}
                 </TableBody>
               </Table>
-            </TabsContent>
-            <TabsContent value="current" className="space-y-4">
+            ) : (
+              <div className="p-4 flex flex-col items-center justify-center gap-2">
+                <Alert variant="destructive" className="max-w-md">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Nenhum hóspede encontrado</AlertTitle>
+                  <AlertDescription>
+                    Nenhum hóspede corresponde aos filtros aplicados.
+                  </AlertDescription>
+                </Alert>
+                <Button
+                  variant="outline"
+                  onClick={handleClearFilters}
+                  className="mt-2"
+                >
+                  <XCircleIcon className="mr-2 h-4 w-4" />
+                  Limpar Filtros
+                </Button>
+              </div>
+            )}
+          </TabsContent>
+          <TabsContent value="current" className="space-y-4">
+            {filteredGuests.filter((guest) => guest.status === "Atual").length >
+            0 ? (
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -181,16 +299,41 @@ export default function GuestsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {guestData
+                  {filteredGuests
                     .filter((guest) => guest.status === "Atual")
                     .map((guest) => (
-                      <GuestRow key={guest.id} guest={guest} />
+                      <GuestRow
+                        key={guest.id}
+                        guest={guest}
+                        onDeleteGuest={handleDeleteGuest}
+                      />
                     ))}
                 </TableBody>
               </Table>
-            </TabsContent>
+            ) : (
+              <div className="p-4 flex flex-col items-center justify-center gap-2">
+                <Alert variant="destructive" className="max-w-md">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Nenhum hóspede encontrado</AlertTitle>
+                  <AlertDescription>
+                    Nenhum hóspede atual corresponde aos filtros aplicados.
+                  </AlertDescription>
+                </Alert>
+                <Button
+                  variant="outline"
+                  onClick={handleClearFilters}
+                  className="mt-2"
+                >
+                  <XCircleIcon className="mr-2 h-4 w-4" />
+                  Limpar Filtros
+                </Button>
+              </div>
+            )}
+          </TabsContent>
 
-            <TabsContent value="recent" className="space-y-4">
+          <TabsContent value="recent" className="space-y-4">
+            {filteredGuests.filter((guest) => guest.status === "Recente")
+              .length > 0 ? (
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -204,22 +347,58 @@ export default function GuestsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {guestData
+                  {filteredGuests
                     .filter((guest) => guest.status === "Recente")
                     .map((guest) => (
-                      <GuestRow key={guest.id} guest={guest} />
+                      <GuestRow
+                        key={guest.id}
+                        guest={guest}
+                        onDeleteGuest={handleDeleteGuest}
+                      />
                     ))}
                 </TableBody>
               </Table>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
+            ) : (
+              <div className="p-4 flex flex-col items-center justify-center gap-2">
+                <Alert variant="destructive" className="max-w-md">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Nenhum hóspede encontrado</AlertTitle>
+                  <AlertDescription>
+                    Nenhum hóspede recente corresponde aos filtros aplicados.
+                  </AlertDescription>
+                </Alert>
+                <Button
+                  variant="outline"
+                  onClick={handleClearFilters}
+                  className="mt-2"
+                >
+                  <XCircleIcon className="mr-2 h-4 w-4" />
+                  Limpar Filtros
+                </Button>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </Card>
     </div>
   );
 }
 
-function GuestRow({ guest }: { guest: Guest }) {
+function GuestRow({
+  guest,
+  onDeleteGuest,
+}: {
+  guest: Guest;
+  onDeleteGuest?: (id: string) => void;
+}) {
+  const [showDetails, setShowDetails] = useState(false);
+
+  const handleDelete = () => {
+    if (onDeleteGuest) {
+      onDeleteGuest(guest.id);
+    }
+  };
+
   return (
     <TableRow>
       <TableCell>
@@ -267,13 +446,20 @@ function GuestRow({ guest }: { guest: Guest }) {
           ))}
         </div>
       </TableCell>
-      <TableCell className="text-right">
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" size="sm">
-            Perfil
-          </Button>
-          <Button size="sm">Contato</Button>
-        </div>
+      <TableCell className="text-right space-x-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowDetails(true)}
+        >
+          Ver Detalhes
+        </Button>
+        <GuestDetailsDialog
+          guest={guest}
+          open={showDetails}
+          onOpenChange={setShowDetails}
+          onDelete={handleDelete}
+        />
       </TableCell>
     </TableRow>
   );
@@ -295,7 +481,7 @@ interface Guest {
 
 const guestData: Guest[] = [
   {
-    id: "1",
+    id: "g1",
     name: "João Silva",
     initials: "JS",
     email: "joao.s@exemplo.com",
@@ -307,7 +493,7 @@ const guestData: Guest[] = [
     preferences: ["Andar Alto", "Não Fumante", "Check-in Antecipado"],
   },
   {
-    id: "2",
+    id: "g2",
     name: "Maria Santos",
     initials: "MS",
     email: "maria.s@exemplo.com",
@@ -319,7 +505,7 @@ const guestData: Guest[] = [
     preferences: ["Cama King", "Quarto Silencioso"],
   },
   {
-    id: "3",
+    id: "g3",
     name: "Pedro Oliveira",
     initials: "PO",
     email: "pedro.o@exemplo.com",
@@ -335,7 +521,7 @@ const guestData: Guest[] = [
     ],
   },
   {
-    id: "4",
+    id: "g4",
     name: "Ana Costa",
     initials: "AC",
     email: "ana.c@exemplo.com",
@@ -347,7 +533,7 @@ const guestData: Guest[] = [
     preferences: ["Vista para a Cidade", "Toalhas Extras"],
   },
   {
-    id: "5",
+    id: "g5",
     name: "Carlos Lima",
     initials: "CL",
     email: "carlos.l@exemplo.com",
@@ -359,7 +545,7 @@ const guestData: Guest[] = [
     preferences: ["Camas de Solteiro"],
   },
   {
-    id: "6",
+    id: "g6",
     name: "Beatriz Souza",
     initials: "BS",
     email: "beatriz.s@exemplo.com",
